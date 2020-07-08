@@ -11,7 +11,7 @@ TARGET_CPU_ABI2 :=
 TARGET_CPU_VARIANT := cortex-a53
 
 TARGET_2ND_ARCH := arm
-TARGET_2ND_ARCH_VARIANT := armv7-a-neon
+TARGET_2ND_ARCH_VARIANT := armv8-a
 TARGET_2ND_CPU_ABI := armeabi-v7a
 TARGET_2ND_CPU_ABI2 := armeabi
 TARGET_2ND_CPU_VARIANT := cortex-a53
@@ -92,6 +92,10 @@ TW_SCREEN_BLANK_ON_BOOT := true
 TW_CUSTOM_CPU_TEMP_PATH := /sys/devices/virtual/thermal/thermal_zone1/temp
 TW_USE_TOOLBOX := true
 
+# NTFS and ExFAT support
+TW_INCLUDE_NTFS_3G := true
+TW_INCLUDE_FUSE_EXFAT := true
+
 # Excludes
 TW_EXCLUDE_TWRPAPP := true
 
@@ -104,6 +108,7 @@ TW_CRYPTO_FS_OPTIONS := "nosuid,nodev,noatime,discard,noauto_da_alloc,barrier=0,
 
 # Debug
 TWRP_INCLUDE_LOGCAT := true
+TARGET_USES_LOGD := true
 
 # Storage
 TW_HAS_MTP := true
