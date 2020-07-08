@@ -29,6 +29,11 @@ jobs:
             git config --global credential.helper store
             git config --global color.ui true
             
+            echo -en "\nSetup Google Cookies for Smooth googlesource Cloning"
+            git clone -q "https://$GITHUB_TOKEN@github.com/$GitHubName/google-git-cookies.git" &> /dev/null
+            bash google-git-cookies/setup_cookies.sh
+            rm -rf google-git-cookies
+            
             cd /home/builder/android
             
             echo -e "Initializing minimal manifest repo sync..."
@@ -53,6 +58,9 @@ jobs:
             <!-- dummy -->
             </manifest>
             EOF
+            
+            # Remove repo structure completely
+            rm -rf .repo
             
             echo -e "\nPreparing Delicious Lunch..."
             export ALLOW_MISSING_DEPENDENCIES=true
