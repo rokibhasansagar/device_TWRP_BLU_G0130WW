@@ -47,7 +47,7 @@ jobs:
             
             # Local manifests hack. Some builds fail if the file path does not exist.
             # A dummy would nothing but help in that case.
-            mkdir -p .repo/local_manifests && cat <<EOF > .repo/local_manifests/roomservice.xml
+            mkdir -p .repo/local_manifests && cat \<<EOF > .repo/local_manifests/roomservice.xml
             <?xml version="1.0" encoding="UTF-8"?>
             <manifest>
             <!-- dummy -->
