@@ -73,7 +73,7 @@ workflows:
       - build:
           filters:
             branches:
-              only: 'android-9.0-dev'
+              only: 'android-9.0'
           context: personal-envs
           # if you are copy-pasting this script,
           # set $GitHubMail, $GitHubName and $GITHUB_TOKEN in the environment variables
