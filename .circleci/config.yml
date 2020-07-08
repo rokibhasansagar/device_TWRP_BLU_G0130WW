@@ -55,8 +55,8 @@ jobs:
             
             repo sync -c -q --force-sync --no-clone-bundle --no-tags -j$(nproc --all)
             
-            echo -e "\nGetting the Device Tree on place"
-            git clone https://$GITHUB_TOKEN@github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME} -b ${CIRCLE_BRANCH} device/${VENDOR}/${CODENAME}
+            #echo -e "\nGetting the Device Tree on place"
+            #git clone https://$GITHUB_TOKEN@github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME} -b ${CIRCLE_BRANCH} device/${VENDOR}/${CODENAME}
 
             echo -e "\nPreparing Delicious Lunch..."
             export ALLOW_MISSING_DEPENDENCIES=true
