@@ -45,16 +45,19 @@ jobs:
             echo -e "\nGetting the Device Tree on place"
             git clone https://$GITHUB_TOKEN@github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME} -b ${CIRCLE_BRANCH} device/${VENDOR}/${CODENAME}
             
+            # Local manifests hack. Some builds fail if the file path does not exist.
+            # A dummy would nothing but help in that case.
+            mkdir -p .repo/local_manifests && cat <<EOF > .repo/local_manifests/roomservice.xml
+            <?xml version="1.0" encoding="UTF-8"?>
+            <manifest>
+            <!-- dummy -->
+            </manifest>
+            EOF
+            
             echo -e "\nPreparing Delicious Lunch..."
             export ALLOW_MISSING_DEPENDENCIES=true
             source build/envsetup.sh
             lunch omni_${CODENAME}-${FLAVOR}
-            
-            # Keep the whole .repo/manifests folder
-            cp -a .repo/manifests $(pwd)/
-            echo "Cleaning up the .repo folder to slim down the build system"
-            rm -rf .repo
-            mkdir -p .repo && mv manifests .repo/ && ln -s .repo/manifests/default.xml .repo/manifest.xml
             
             export nowTime=$(date +%Y%m%d-%H%M)
             echo -e "\nBuilding Started, Please wait patiently...\n"
