@@ -1,0 +1,79 @@
+version: 2.1
+jobs:
+  build:
+    docker:
+      - image: fr3akyphantom/droid-builder:edge
+    environment:
+      # GitHubMail: ""
+      # GitHubName: ""
+      # GITHUB_TOKEN: '' # MUST BE SECRET & PUT IN CIRCLECI PROJECT ENV VARS
+      VENDOR: 'BLU'
+      CODENAME: 'G0130WW'
+      FLAVOR: 'userdebug'
+    working_directory: /home/builder/android
+    steps:
+      - run:
+          name: AIO Build
+          command: |
+            # SANITY CHECKS
+            if [[ -z $GitHubMail ]]; then echo -e "You haven't configured GitHub E-Mail Address." && exit 1; fi
+            if [[ -z $GitHubName ]]; then echo -e "You haven't configured GitHub Username." && exit 1; fi
+            if [[ -z $GITHUB_TOKEN ]]; then echo -e "You haven't configured GitHub Token.\nWithout it, recovery can't be published." && exit 1; fi
+            if [[ -z $VENDOR ]]; then echo -e "You haven't configured Vendor name." && exit 1; fi
+            if [[ -z $CODENAME ]]; then echo -e "You haven't configured Device Codename." && exit 1; fi
+            if [[ -z $FLAVOR ]]; then echo -e "Set as 'eng' or 'userdebug'." && exit 1; fi
+
+            # Set GitAuth Infos"
+            git config --global user.email $GitHubMail
+            git config --global user.name $GitHubName
+            git config --global credential.helper store
+            git config --global color.ui true
+            
+            cd /home/builder/android
+            
+            echo -e "Initializing minimal manifest repo sync..."
+            repo init -q -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_omni.git -b twrp-9.0 --depth 1
+            
+            echo -e "\nRemoving Unimportant Darwin-specific Files from syncing"
+            cd .repo/manifests
+            find . -type f -name '*.xml' | xargs sed -i '/darwin/d'
+            git commit -a -m "Magic" || true
+            cd ../ && sed -i '/darwin/d' manifest.xml && cd ../
+            
+            repo sync -c -q --force-sync --no-clone-bundle --no-tags -j$(nproc --all)
+            
+            echo -e "\nGetting the Device Tree on place"
+            git clone https://$GITHUB_TOKEN@github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME} -b ${CIRCLE_BRANCH} device/${VENDOR}/${CODENAME}
+            
+            echo -e "\nPreparing Delicious Lunch..."
+            export ALLOW_MISSING_DEPENDENCIES=true
+            source build/envsetup.sh
+            lunch omni_${CODENAME}-${FLAVOR}
+            
+            # Keep the whole .repo/manifests folder
+            cp -a .repo/manifests $(pwd)/
+            echo "Cleaning up the .repo folder to slim down the build system"
+            rm -rf .repo
+            mkdir -p .repo && mv manifests .repo/ && ln -s .repo/manifests/default.xml .repo/manifest.xml
+            
+            export nowTime=$(date +%Y%m%d-%H%M)
+            echo -e "\nBuilding Started, Please wait patiently...\n"
+            make -j$(nproc --all) recoveryimage
+
+            echo "Ready to Deploy"
+            mkdir upload
+            export version=$(cat bootable/recovery/variables.h | grep "define TW_MAIN_VERSION_STR" | cut -d '"' -f2)
+            cp out/target/product/${CODENAME}/recovery.img upload/TWRP-${version}-${CODENAME}-$nowTime-Unofficial.img
+            ghr -t ${GITHUB_TOKEN} -n "Latest TWRP Release for $(echo $CODENAME)" -b "TWRP $(echo $version)" -delete ${version} upload/
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - build:
+          filters:
+            branches:
+              only: 'android-9.0-dev'
+          context: personal-envs
+          # if you are copy-pasting this script,
+          # set $GitHubMail, $GitHubName and $GITHUB_TOKEN in the environment variables
