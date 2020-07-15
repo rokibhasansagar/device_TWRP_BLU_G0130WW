@@ -79,7 +79,8 @@ jobs:
             cp out/target/product/${CODENAME}/recovery.img upload/TWRP-${version}-${CODENAME}-$nowTime-Unofficial.img
             cp out/target/product/${CODENAME}/*.img upload/
             cp out/target/product/${CODENAME}/ramdisk* upload/
-            ghr -t ${GITHUB_TOKEN} -n "Latest TWRP Release for $(echo $CODENAME)" -b "TWRP $(echo $version)" -delete twrp_v${version} upload/
+            ls -lA upload/
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -n "Latest TWRP Release for $(echo $CODENAME)" -b "TWRP $(echo $version)" -delete twrp_v${version} upload/
 
 workflows:
   version: 2
