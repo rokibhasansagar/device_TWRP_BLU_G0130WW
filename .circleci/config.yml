@@ -55,8 +55,14 @@ jobs:
             
             repo sync -c -q --force-sync --no-clone-bundle --no-tags -j$(nproc --all)
             
-            #echo -e "\nGetting the Device Tree on place"
-            #git clone https://$GITHUB_TOKEN@github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME} -b ${CIRCLE_BRANCH} device/${VENDOR}/${CODENAME}
+            # Unshallow vendor_omni
+            repo forall vendor/omni -c "git fetch --unshallow omnirom android-9.0"
+            # Retain "roomservice: Do not overwrite existing repositories"
+            repo forall vendor/omni -c "git revert 718f4c2fd6890f5eaa2d4972b1c3f3f582b5da47 -Xtheirs --no-edit --no-commit"
+            # Retain "roomservice: Do not overwrite existing devices"
+            repo forall vendor/omni -c "git revert 380d19cea2857d5901d7e7163f65ccc66d7bbad7 -Xtheirs --no-edit --no-commit"
+            # Add those retains into local commit
+            repo forall vendor/omni -c "git commit -m 'Fix Build from forked/personal repos'"
 
             echo -e "\nPreparing Delicious Lunch..."
             export ALLOW_MISSING_DEPENDENCIES=true
@@ -71,7 +77,9 @@ jobs:
             mkdir upload
             export version=$(cat bootable/recovery/variables.h | grep "define TW_MAIN_VERSION_STR" | cut -d '"' -f2)
             cp out/target/product/${CODENAME}/recovery.img upload/TWRP-${version}-${CODENAME}-$nowTime-Unofficial.img
-            ghr -t ${GITHUB_TOKEN} -n "Latest TWRP Release for $(echo $CODENAME)" -b "TWRP $(echo $version)" -delete ${version} upload/
+            cp out/target/product/${CODENAME}/*.img upload/
+            cp out/target/product/${CODENAME}/ramdisk* upload/
+            ghr -t ${GITHUB_TOKEN} -n "Latest TWRP Release for $(echo $CODENAME)" -b "TWRP $(echo $version)" -delete twrp_v${version} upload/
 
 workflows:
   version: 2
